@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Recommendation System</title>
+</head>
+<body>
+    <h1>Product Recommendation System</h1>
+    <p>Get personalized product recommendations based on sentiment analysis</p>
+
+    <form id="recommendationForm">
+        <label for="username">Select User:</label>
+        <select id="username" name="username" required>
+            <option value="">-- Select a user --</option>
+            {% for user in users %}
+            <option value="{{ user }}">{{ user }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+        
+        <button type="submit" id="submitBtn">Get Recommendations</button>
+    </form>
+
+    <div id="loading" style="display: none;">
+        <p>Loading recommendations...</p>
+    </div>
+
+    <div id="error" style="display: none; color: red;">
+    </div>
+
+    <div id="results" style="display: none;">
+        <h2>Top 5 Recommended Products for <span id="selectedUser"></span></h2>
+        
+        <table border="1" cellpadding="5" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Product Name</th>
+                    <th>Positive Reviews</th>
+                    <th>Total Reviews</th>
+                    <th>Positive Percentage</th>
+                </tr>
+            </thead>
+            <tbody id="recommendationsList">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('recommendationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            const recommendationsList = document.getElementById('recommendationsList');
+            const selectedUser = document.getElementById('selectedUser');
+            
+            if (!username) {
+                showError('Please select a user');
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Loading...';
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            error.style.display = 'none';
+            
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayRecommendations(data.recommendations, data.username);
+                }
+                
+            } catch (err) {
+                showError('An error occurred while fetching recommendations. Please try again.');
+                console.error('Error:', err);
+            } finally {
+                // Hide loading state
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Recommendations';
+                loading.style.display = 'none';
+            }
+        });
+        
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+        
+        function displayRecommendations(recommendations, username) {
+            const results = document.getElementById('results');
+            const recommendationsList = document.getElementById('recommendationsList');
+            const error = document.getElementById('error');
+            const selectedUser = document.getElementById('selectedUser');
+            
+            error.style.display = 'none';
+            
+            if (!recommendations || recommendations.length === 0) {
+                showError('No recommendations found for this user.');
+                return;
+            }
+            
+            selectedUser.textContent = username;
+            recommendationsList.innerHTML = '';
+            
+            recommendations.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${product.name}</td>
+                    <td>${product.positive_sentiment_count}</td>
+                    <td>${product.total_sentiment_count}</td>
+                    <td>${product.positive_sentiment_percentage}%</td>
+                `;
+                recommendationsList.appendChild(row);
+            });
+            
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
