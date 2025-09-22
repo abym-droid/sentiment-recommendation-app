@@ -123,11 +123,11 @@ sentiment-recommendation-app/
    Open your browser and navigate to `http://localhost:5001`
 
 8. **Recommendation Process**
-1. Get top 20 products from user-based collaborative filtering
-2. Extract reviews for these products
-3. Predict sentiment for each review using the trained model
-4. Calculate positive sentiment percentage for each product
-5. Return top 5 products ranked by positive sentiment
+   - Get top 20 products from user-based collaborative filtering
+   - Extract reviews for these products
+   - Predict sentiment for each review using the trained model
+   - Calculate positive sentiment percentage for each product
+   - Return top 5 products ranked by positive sentiment
 
 ### Web Interface
 1. Visit the web application
